@@ -183,6 +183,15 @@ class Config(metaclass=Singleton):
 
         self.chat_messages_enabled = os.getenv("CHAT_MESSAGES_ENABLED") == "True"
 
+        """初始化 Azure OpenAI 配置"""
+        self.azure_api_key = os.getenv("AZURE_API_KEY", "")
+        self.azure_endpoint = os.getenv("AZURE_ENDPOINT", "")
+        self.azure_api_version = os.getenv("AZURE_API_VERSION", "2024-02-01")
+        self.azure_organization = os.getenv("AZURE_ORGANIZATION", "")
+        self.azure_model_map = {}
+
+        self.load_azure_config()  # 加载 YAML 配置
+
     def load_plugins_config(self) -> "autogpt.plugins.PluginsConfig":
         # Avoid circular import
         from autogpt.plugins.plugins_config import PluginsConfig
@@ -190,53 +199,69 @@ class Config(metaclass=Singleton):
         self.plugins_config = PluginsConfig.load_config(global_config=self)
         return self.plugins_config
 
-    def get_azure_deployment_id_for_model(self, model: str) -> str:
-        """
-        Returns the relevant deployment id for the model specified.
+    # def get_azure_deployment_id_for_model(self, model: str) -> str:
+    #     """
+    #     Returns the relevant deployment id for the model specified.
 
-        Parameters:
-            model(str): The model to map to the deployment id.
+    #     Parameters:
+    #         model(str): The model to map to the deployment id.
 
-        Returns:
-            The matching deployment id if found, otherwise an empty string.
-        """
-        if model == self.fast_llm_model:
-            return self.azure_model_to_deployment_id_map[
-                "fast_llm_model_deployment_id"
-            ]  # type: ignore
-        elif model == self.smart_llm_model:
-            return self.azure_model_to_deployment_id_map[
-                "smart_llm_model_deployment_id"
-            ]  # type: ignore
-        elif model == "text-embedding-ada-002":
-            return self.azure_model_to_deployment_id_map[
-                "embedding_model_deployment_id"
-            ]  # type: ignore
-        else:
-            return ""
+    #     Returns:
+    #         The matching deployment id if found, otherwise an empty string.
+    #     """
+    #     if model == self.fast_llm_model:
+    #         return self.azure_model_to_deployment_id_map[
+    #             "fast_llm_model_deployment_id"
+    #         ]  # type: ignore
+    #     elif model == self.smart_llm_model:
+    #         return self.azure_model_to_deployment_id_map[
+    #             "smart_llm_model_deployment_id"
+    #         ]  # type: ignore
+    #     elif model == "text-embedding-ada-002":
+    #         return self.azure_model_to_deployment_id_map[
+    #             "embedding_model_deployment_id"
+    #         ]  # type: ignore
+    #     else:
+    #         return ""
 
     AZURE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "../..", "azure.yaml")
 
     def load_azure_config(self, config_file: str = AZURE_CONFIG_FILE) -> None:
         """
-        Loads the configuration parameters for Azure hosting from the specified file
-          path as a yaml file.
-
-        Parameters:
-            config_file(str): The path to the config yaml file. DEFAULT: "../azure.yaml"
-
-        Returns:
-            None
+        加载 Azure OpenAI API 配置（如果存在 `azure.yaml`）
         """
-        with open(config_file) as file:
-            config_params = yaml.load(file, Loader=yaml.FullLoader) or {}
-        self.openai_api_type = config_params.get("azure_api_type") or "azure"
-        self.openai_api_base = config_params.get("azure_api_base") or ""
-        self.openai_api_version = (
-            config_params.get("azure_api_version") or "2023-03-15-preview"
-        )
-        self.azure_model_to_deployment_id_map = config_params.get("azure_model_map", {})
+        try:
+            with open(config_file, "r") as file:
+                config_params = yaml.safe_load(file) or {}
 
+            self.azure_api_key = config_params.get("azure_api_key", self.azure_api_key)
+            self.azure_endpoint = config_params.get("azure_endpoint", self.azure_endpoint)
+            self.azure_api_version = config_params.get("azure_api_version", self.azure_api_version)
+            self.azure_organization = config_params.get("organization", self.azure_organization)
+            self.azure_model_map = config_params.get("azure_model_map", {})
+
+            print("[INFO] Azure OpenAI 配置加载成功！")
+
+        except FileNotFoundError:
+            print(f"[WARNING] 配置文件 {config_file} 未找到，使用默认环境变量。")
+        except yaml.YAMLError as e:
+            print(f"[ERROR] 解析 YAML 文件出错: {e}")
+
+    def get_azure_client(self) -> AzureOpenAI:
+        """
+        获取 Azure OpenAI 客户端
+        """
+        if not self.azure_api_key or not self.azure_endpoint:
+            print("[ERROR] Azure API Key 或 Endpoint 未配置，请检查 `azure.yaml` 或环境变量。")
+            exit(1)
+
+        return AzureOpenAI(
+            api_key=self.azure_api_key,
+            azure_endpoint=self.azure_endpoint,
+            api_version=self.azure_api_version,
+            organization=self.azure_organization,
+        )
+    
     def set_continuous_mode(self, value: bool) -> None:
         """Set the continuous mode value."""
         self.continuous_mode = value
