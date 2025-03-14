@@ -247,7 +247,7 @@ def main():
     training_args.num_train_epochs = 1 if not "--num_train_epochs" in sys.argv else training_args.num_train_epochs
     training_args.evaluation_strategy = "steps" if not "--evaluation_strategy" in sys.argv else training_args.evaluation_strategy
     training_args.eval_steps = 0.2 if not "--eval_steps" in sys.argv else training_args.eval_steps
-    training_args.per_device_train_batch_size = 16 if not "--per_device_train_batch_size" in sys.argv else training_args.per_device_train_batch_size
+    training_args.per_device_train_batch_size = 8 if not "--per_device_train_batch_size" in sys.argv else training_args.per_device_train_batch_size
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
