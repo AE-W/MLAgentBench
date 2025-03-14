@@ -307,13 +307,11 @@ def main():
     # download the dataset.
     if data_args.dataset_name is not None:
         # Downloading and loading a dataset from the hub.
-        raw_datasets = load_dataset(
-            data_args.dataset_name,
-            data_args.dataset_config_name,
-            cache_dir=model_args.cache_dir,
-            use_auth_token=True if model_args.use_auth_token else None,
-            streaming=data_args.streaming,
-        )
+        data_files = {
+            "train": "../env/babylm_data/train.txt",
+            "validation": "../env/babylm_data/valid.txt"
+        }
+        raw_datasets = load_dataset("text", data_files=data_files)
         if "validation" not in raw_datasets.keys():
             raw_datasets["validation"] = load_dataset(
                 data_args.dataset_name,
