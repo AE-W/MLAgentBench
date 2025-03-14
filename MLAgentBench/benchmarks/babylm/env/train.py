@@ -163,7 +163,7 @@ class DataTrainingArguments:
         metadata={"help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."},
     )
     max_train_samples: Optional[int] = field(
-        default=None,
+        default=500,
         metadata={
             "help": (
                 "For debugging purposes or quicker training, truncate the number of training examples to this "
@@ -227,11 +227,15 @@ def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
         model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        
     else:
         if "--output_dir" not in sys.argv:
             sys.argv.append("--output_dir")
