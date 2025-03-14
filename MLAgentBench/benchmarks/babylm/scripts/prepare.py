@@ -10,7 +10,7 @@ os.makedirs(download_dir, exist_ok=True)
 
 
 print("Downloading BabyLM dataset from Hugging Face...")
-dataset = load_dataset("cambridge-climb/BabyLM", "babyLM-10M", cache_dir=download_dir)
+dataset = load_dataset("cambridge-climb/BabyLM", "strict_small", cache_dir=download_dir)
 
 
 train_data = dataset["train"]
