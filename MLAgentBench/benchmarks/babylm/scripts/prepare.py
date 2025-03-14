@@ -1,11 +1,33 @@
 import subprocess
-import pandas as pd
+import os
+from datasets import load_dataset
 
 taskname = "babylm"
-download_dir = "../env"
+download_dir = "../env/babylm_data"
 
-subprocess.run(["wget", "https://github.com/babylm/babylm.github.io/raw/main/babylm_10M.zip"], cwd=download_dir) 
-subprocess.run(["unzip", "-n", f"babylm_10M.zip"], cwd=download_dir)
-subprocess.run(["rm", f"babylm_10M.zip"], cwd=download_dir)
-subprocess.run(["rm", "-rf", f"babylm_data/babylm_10M"], cwd=download_dir)
-subprocess.run(["rm", "-rf", f"__MACOSX"], cwd=download_dir)
+
+os.makedirs(download_dir, exist_ok=True)
+
+
+print("Downloading BabyLM dataset from Hugging Face...")
+dataset = load_dataset("cambridge-climb/BabyLM", "babyLM-10M", cache_dir=download_dir)
+
+
+train_data = dataset["train"]
+valid_data = dataset["validation"]
+
+
+train_path = os.path.join(download_dir, "train.txt")
+valid_path = os.path.join(download_dir, "valid.txt")
+
+print(f"Saving training data to {train_path}...")
+with open(train_path, "w") as f:
+    for line in train_data["text"]:
+        f.write(line + "\n")
+
+print(f"Saving validation data to {valid_path}...")
+with open(valid_path, "w") as f:
+    for line in valid_data["text"]:
+        f.write(line + "\n")
+
+print("Dataset download and processing complete.")
