@@ -4,7 +4,7 @@ import os
 
 taskname = "feedback-prize-english-language-learning"
 # download_dir = f"benchmarks/{taskname}/env"
-download_dir = "benchmarks/" + taskname + "/env"
+download_dir = "benchmarks/feedback/env"
 
 # make sure the directory exixst
 os.makedirs(download_dir, exist_ok=True)
