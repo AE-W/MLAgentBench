@@ -2,7 +2,7 @@ import subprocess
 import pandas as pd
 import os
 
-taskname = "feedback"
+taskname = "feedback-prize-english-language-learning"
 # download_dir = f"benchmarks/{taskname}/env"
 download_dir = "benchmarks/" + taskname + "/env"
 
