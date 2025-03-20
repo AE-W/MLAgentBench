@@ -4,9 +4,8 @@ import random
 import os
 
 taskname = "amp-parkinsons-disease-progression-prediction"
-download_dir = "benchmarks/" + taskname + "/env"
+download_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "env")
 
-# make sure the directory exixst
 os.makedirs(download_dir, exist_ok=True)
 
 input(f"Consent to the competition at https://www.kaggle.com/competitions/{taskname}/data; Press any key after you have accepted the rules online.")
